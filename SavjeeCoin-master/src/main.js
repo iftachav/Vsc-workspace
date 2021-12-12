@@ -28,6 +28,7 @@ log('me - ', me)
 log('peers - ', peers)
 log('connecting to peers...')
 
+console.log("ggit");
 const myIp = toLocalIp(me)
 const peerIps = getPeerIps(peers)
 const fullNodeWallet=new Wallet('7c4c45907dec40c91bab3480c39032e90049f1a44f3e18c3e07c23e3273995cf');
