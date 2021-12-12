@@ -93,6 +93,9 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
       exit(0)
     }
 
+    if(message.includes("verify"))
+        socket.write(message);
+
 
    //console.log("num of tran in mempol",json.transaction.length);
 

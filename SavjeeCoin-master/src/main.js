@@ -73,7 +73,11 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
     socket.on('data', data => {
     //const tran=new Transaction
     //console.log("data is ",data);
-    const tran=JSON.parse(data);
+    if(data.includes("verify")){
+      console.log("my data is",data)
+    }
+    else{
+        const tran=JSON.parse(data);
     //console.log("we recive",tran);
     for(let i=0;i<tran.length;i++){
         const transaticon=new Transaction(tran[i].fromAddress,tran[i].toAddress,tran[i].amount,tran[i].timestamp,tran[i].signature)
@@ -82,8 +86,10 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
         log("check if valid",transaticon.isValid());
         savjeeCoin.addTransaction(transaticon);
     }
-    var c=setInterval(savjeeCoin.minePendingTransactions,5000,fullNodeWallet.publicKey);
-    //savjeeCoin.minePendingTransactions(fullNodeWallet.getPublicKey());
+    }
+
+    //var c=setInterval(savjeeCoin.minePendingTransactions,5000,fullNodeWallet.publicKey);
+    savjeeCoin.minePendingTransactions(fullNodeWallet.getPublicKey());
     //savjeeCoin.minePendingTransactions(fullNodeWallet.getPublicKey());
     //console.log("this is 4001 balance")
     //console.log(savjeeCoin.getBalanceOfAddress(fullNodeWallet.publicKey))
@@ -97,7 +103,7 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
   })
 })
     // Create a transaction & sign it with your key
-var c=setInterval(savjeeCoin.minePendingTransactions,5000,fullNodeWallet.publicKey);
+//var c=setInterval(savjeeCoin.minePendingTransactions,5000,fullNodeWallet.publicKey);
 // const tx1 = new Transaction(fullNodeWallet.getPublicKey(), secondKey.getPublic('hex'), 20);
 //     //tx1.signTransaction(myKey);
 
