@@ -19,6 +19,7 @@ var myWallet={};
 var tranJson={};
 var tran={};
 var verfiytransactionJson
+var flag;
 
 log('---------------------')
 log('Welcome to p2p chat!')
@@ -38,7 +39,7 @@ else
 //}
 
 //connect to peers
-topology(myIp, peerIps).on('connection', (socket, peerIp) => {
+var t=topology(myIp, peerIps).on('connection', (socket, peerIp) => {
     // if(me==fullNodesPeer){
     //     log('first peer is-',me)
     // }
@@ -81,11 +82,19 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
     }
     if(tranArray.length>0){
       verfiytransactionJson=JSON.stringify(tranArray);
+      //sockets[fullNodesPeer].write("hiiii");
       socket.write(verfiytransactionJson);
 
     }
     tranArray=[];
+    var tt=t.peer("127.0.0.1:"+fullNodesPeer)
+    tt.on('data', data => {
+      if(flag!=data){
 
+        log(data.toString("utf8"))
+        flag=data;
+      }
+    })
    stdin.on('data', data => { //on user input
     const message = data.toString().trim()
     if (message === 'exit') { //on exit
@@ -93,8 +102,10 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
       exit(0)
     }
 
-    if(message.includes("verify"))
+    if(message.includes("verify")||message.includes("exist"))
         socket.write(message);
+    
+    
 
 
    //console.log("num of tran in mempol",json.transaction.length);
@@ -112,7 +123,12 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
     //   //socket.write(tranJson)
     // }
     
-  })
+  }) 
+//   socket.on('data', data =>{
+//       //if(me==4003)
+//       log(data.toString("utf8"))
+// }) 
+
   
   //print data when received
   // socket.on('data', data => {

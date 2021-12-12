@@ -7,6 +7,7 @@ const SHA256 = require('crypto-js/sha256');
 const json=require('./inputJson.json');
 const topology = require('fully-connected-topology')
 const {Wallet}= require('./wallet');
+const { BloomFilter } = require('bloom-filters')
 
 //const {randomBytes}=require('crypto');
 
@@ -63,24 +64,40 @@ savjeeCoin.minePendingTransactions(fullNodeWallet.getPublicKey());
     console.log(`Balance of xavier before  is ${savjeeCoin.getBalanceOfAddress(fullNodeWallet.getPublicKey())}`);
     //console.log(savjeeCoin.chain[0].tree.toString()) ;
 
-topology(myIp, peerIps).on('connection', (socket, peerIp) => {
+var t=topology(myIp, peerIps).on('connection', (socket, peerIp) => {
     const peerPort = extractPortFromIp(peerIp)
     log('connected to peer - ', peerPort)
 
     sockets[peerPort] = socket
-
+    var tt=t.peer("127.0.0.1:"+peerPort)
+    //var t2=t.peer("127.0.0.1:"+4003)
+    //tt.write("verify")
       //print data when received
     socket.on('data', data => {
     //const tran=new Transaction
     //console.log("data is ",data);
     if(data.includes("verify")){
-      console.log("my data is",data)
+     // console.log("peer port is ",peerPort);
+      
+      //if(peerPort==4002)
+        tt.write(savjeeCoin.checkIfVerfiy(data.toString("utf8").slice(7,)).toString())
+      //else
+        //t2.write(savjeeCoin.checkIfVerfiy(data.toString("utf8").slice(7,)).toString())
+
+      
+      //console.log(savjeeCoin.checkIfVerfiy(data.toString("utf8").slice(7,)))
+    }
+    else if(data.includes("exist")){
+      console.log("data",data.toString("utf8").slice(6,))
+      tt.write(savjeeCoin.checkIfExist(data.toString("utf8").slice(6,)).toString())
     }
     else{
         const tran=JSON.parse(data);
     //console.log("we recive",tran);
     for(let i=0;i<tran.length;i++){
         const transaticon=new Transaction(tran[i].fromAddress,tran[i].toAddress,tran[i].amount,tran[i].timestamp,tran[i].signature)
+        if(i==0)
+        console.log(transaticon.calculateHash());
         //console.log("my amout is ",tran[i].amount,"and add is",transaticon.fromAddress);
         //console.log("my amout is ",tran[i].amount,"and balance is",savjeeCoin.getBalanceOfAddress(transaticon.fromAddress));
         log("check if valid",transaticon.isValid());
@@ -102,19 +119,25 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
    // savjeeCoin.minePendingTransactions(fullNodeWallet.getPublicKey());
   })
 })
+
+
+const bloom=new BloomFilter(10,4);
+
     // Create a transaction & sign it with your key
 //var c=setInterval(savjeeCoin.minePendingTransactions,5000,fullNodeWallet.publicKey);
-// const tx1 = new Transaction(fullNodeWallet.getPublicKey(), secondKey.getPublic('hex'), 20);
-//     //tx1.signTransaction(myKey);
+ const tx1 = new Transaction(fullNodeWallet.getPublicKey(), secondKey.getPublic('hex'), 20);
+     tx1.signTransaction(fullNodeWallet.privateKey);
 
 // fullNodeWallet.signMyTransaction(tx1);
-// savjeeCoin.addTransaction(tx1);
+ savjeeCoin.addTransaction(tx1);
     
     //console.log("sockets is",b.getSockets());
     //b.getSockets().write("write to sokcet ",tx1.toString())
     // Mine block
-    //savjeeCoin.minePendingTransactions(myWalletAddress);
-
+    const tx2 = new Transaction(fullNodeWallet.getPublicKey(), 'address1', 10);
+    savjeeCoin.minePendingTransactions(fullNodeWallet.getPublicKey());
+    bloom.add(tx1.calculateHash());
+    //console.log("its bloom",bloom.has(tx2.calculateHash()));
     // Create second transaction
 // const tx2 = new Transaction(fullNodeWallet.getPublicKey(), 'address1', 10);
 // fullNodeWallet.signMyTransaction(tx2);

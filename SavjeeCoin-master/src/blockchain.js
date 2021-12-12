@@ -4,6 +4,7 @@ const ec = new EC('secp256k1');
 const debug = require('debug')('savjeecoin:blockchain');
 const { MerkleTree } = require('merkletreejs');
 const SHA256 = require('crypto-js/sha256');
+const { BloomFilter } = require('bloom-filters')
 
 class Transaction {
   /**
@@ -87,7 +88,8 @@ class Block {
     this.previousHash = previousHash;
     this.timestamp = timestamp;
     this.transactions = transactions;
-    this.tree=new MerkleTree(this.transactions.map(x=>x.calculateHash()), SHA256);;
+    this.tree=new MerkleTree(this.transactions.map(x=>x.calculateHash()), SHA256);
+    this.filter=new BloomFilter(10,4);
     this.nonce = 0;
     this.hash = this.calculateHash();
   }
@@ -160,6 +162,42 @@ class Blockchain {
     return this.chain[this.chain.length - 1];
   }
 
+    /**
+  given address.
+   *
+   * @param {string} transactionHash
+   * 
+   * @returns {true/false}
+   */
+
+  checkIfVerfiy(transactionHash){
+
+    for (const block of this.chain) {
+        const tree=block.tree
+        const root = tree.getRoot().toString('hex')
+        const proof = tree.getProof(transactionHash)
+        //console.log("is tran in block",tree.verify(proof, leaf, root))
+        if(tree.verify(proof,transactionHash, root))
+          return true
+    
+    } 
+    return false
+  }
+
+  
+  checkIfExist(transaction){
+    console.log("tran inside",transaction.toString());
+    for (const block of this.chain) {
+      const filter=block.filter
+      if(filter.has(transaction))
+        return true;
+
+    }
+    return false;
+
+
+  }
+
   /**
    * Takes all the pending transactions, puts them in a Block and starts the
    * mining process. It also adds a transaction to send the mining reward to
@@ -191,6 +229,10 @@ class Blockchain {
     //const leaves = this.pendingTransactions.map(x=>x.calculateHash())
     const block = new Block(Date.now(), tempPendingTransactions, this.getLatestBlock().hash);
    // block.tree=new MerkleTree(leaves, SHA256);
+   for(let i=0;i<tempPendingTransactions.length;i++){
+      block.filter.add(tempPendingTransactions[i].calculateHash());
+   }
+    
     block.mineBlock(this.difficulty);
 
     debug('Block successfully mined!');
