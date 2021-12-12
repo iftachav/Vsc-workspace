@@ -12,12 +12,13 @@ class Transaction {
    * @param {string} toAddress
    * @param {number} amount
    */
-  constructor(fromAddress, toAddress, amount, timestamp=Date.now(),signature='') {
+  constructor(fromAddress, toAddress, amount,priority=false, timestamp=Date.now(),signature='') {
     this.fromAddress = fromAddress;
     this.toAddress = toAddress;
     this.amount = amount;
     this.timestamp = timestamp;
     this.signature=signature;
+    this.priority=priority;
   }
 
 
@@ -89,7 +90,7 @@ class Block {
     this.timestamp = timestamp;
     this.transactions = transactions;
     this.tree=new MerkleTree(this.transactions.map(x=>x.calculateHash()), SHA256);
-    this.filter=new BloomFilter(10,4);
+    this.blockFilter=new BloomFilter(10,4);
     this.nonce = 0;
     this.hash = this.calculateHash();
   }
@@ -188,8 +189,8 @@ class Blockchain {
   checkIfExist(transaction){
     console.log("tran inside",transaction.toString());
     for (const block of this.chain) {
-      const filter=block.filter
-      if(filter.has(transaction))
+      const blockFilter=block.blockFilter
+      if(blockFilter.has(transaction))
         return true;
 
     }
@@ -198,6 +199,11 @@ class Blockchain {
 
   }
 
+    coinsBurn(fromAddress,amount){
+      const burnTx = new Transaction(fromAddress, null, amount);
+      if(this.getBalanceOfAddress(fromAddress)>=amount)
+        this.pendingTransactions.push(burnTx);
+    }
   /**
    * Takes all the pending transactions, puts them in a Block and starts the
    * mining process. It also adds a transaction to send the mining reward to
@@ -213,6 +219,7 @@ class Blockchain {
     //this.pendingTransactions.push(rewardTx);
     
     let tempPendingTransactions= [];
+    const TempBlockFilter=new BloomFilter(10,4);
     //console.log("pending  len is",this.pendingTransactions.length);
     if(this.pendingTransactions.length>0){
       const size= this.pendingTransactions.length;
@@ -230,8 +237,13 @@ class Blockchain {
     const block = new Block(Date.now(), tempPendingTransactions, this.getLatestBlock().hash);
    // block.tree=new MerkleTree(leaves, SHA256);
    for(let i=0;i<tempPendingTransactions.length;i++){
-      block.filter.add(tempPendingTransactions[i].calculateHash());
+      TempBlockFilter.add(tempPendingTransactions[i].calculateHash());
+      if(tempPendingTransactions[i].fromAddress!=null && tempPendingTransactions[i].toAddress!= null){
+        this.coinsBurn(tempPendingTransactions[i].fromAddress,this.chain.length-1)
+        console.log("ADDED BURN ",this.chain.length-1)
+      }
    }
+   block.blockFilter=TempBlockFilter;
     
     block.mineBlock(this.difficulty);
 
@@ -267,8 +279,12 @@ class Blockchain {
       console.log("balance",this.getBalanceOfAddress(transaction.fromAddress),"and amout ",transaction.amount)
       throw new Error("Not enough balance");
     }
+    if(transaction.priority=="true"){
 
-    this.pendingTransactions.push(transaction);
+      this.pendingTransactions.unshift(transaction);
+    }
+    else
+      this.pendingTransactions.push(transaction);
     debug('transaction added: %s', transaction);
   }
 

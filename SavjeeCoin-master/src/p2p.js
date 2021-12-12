@@ -15,6 +15,7 @@ const {log} = console
 const {me, peers} = extractPeersAndMyPort()
 const sockets = {}
 const fullNodesPeer=4001
+const fullNodesAddress="04729aaee497f99ff7ed4da9b7a5c23912da6533783b5cee16839b1e2628bc3413672b407a68c7a15a6fe3ea238b16f26e7a35755e258a0b9fb3d007da7a2e9c94";
 var myWallet={};
 var tranJson={};
 var tran={};
@@ -69,9 +70,14 @@ var t=topology(myIp, peerIps).on('connection', (socket, peerIp) => {
       tranJson=json.transaction[i];
       //console.log("tran json is ",json.transaction[i]);
       //console.log("my wallet address",myWallet.publicKey);
-      tran= new Transaction(tranJson.from,tranJson.to,tranJson.amount);
+      tran= new Transaction(tranJson.from,tranJson.to,tranJson.amount,tranJson.priority);
       if(tran.fromAddress==myWallet.publicKey){
         tran.signTransaction(myWallet.privateKey);
+        if(tran.priority==true){
+          const commission=new Transaction(tran.fromAddress,fullNodesAddress,1);
+          commission.signTransaction(myWallet.privateKey);
+          tranArray.push(commission);
+        }
         //verfiytransactionJson=JSON.stringify(tran);
         //console.log("verfiy is ",verfiytransactionJson);
         tranArray.push(tran);

@@ -61,6 +61,21 @@ const savjeeCoin = new Blockchain();
     //savjeeCoin.addTransaction(new Transaction('address1', myWalletAddress, 150));
     // Mine first block
 savjeeCoin.minePendingTransactions(fullNodeWallet.getPublicKey());
+    for(let i=0;i<json.transaction.length;i++){
+      tranJson=json.transaction[i];
+      //console.log("tran json is ",json.transaction[i]);
+      //console.log("my wallet address",myWallet.publicKey);
+      tran= new Transaction(tranJson.from,tranJson.to,tranJson.amount,tranJson.priority);
+      if(tran.fromAddress==fullNodeWallet.publicKey){
+        tran.signTransaction(fullNodeWallet.privateKey);
+        log("check if valid from",tran.isValid());
+        savjeeCoin.addTransaction(tran);
+        //verfiytransactionJson=JSON.stringify(tran);
+        //console.log("verfiy is ",verfiytransactionJson);
+        //socket.write(verfiytransactionJson);
+        //setTimeout(function() {}, 1000);
+      }
+    }
     console.log(`Balance of xavier before  is ${savjeeCoin.getBalanceOfAddress(fullNodeWallet.getPublicKey())}`);
     //console.log(savjeeCoin.chain[0].tree.toString()) ;
 
@@ -73,6 +88,7 @@ var t=topology(myIp, peerIps).on('connection', (socket, peerIp) => {
     //var t2=t.peer("127.0.0.1:"+4003)
     //tt.write("verify")
       //print data when received
+    
     socket.on('data', data => {
     //const tran=new Transaction
     //console.log("data is ",data);
@@ -88,14 +104,16 @@ var t=topology(myIp, peerIps).on('connection', (socket, peerIp) => {
       //console.log(savjeeCoin.checkIfVerfiy(data.toString("utf8").slice(7,)))
     }
     else if(data.includes("exist")){
-      console.log("data",data.toString("utf8").slice(6,))
+      //const tx2 = new Transaction(fullNodeWallet.getPublicKey(), 'address1', 10);
+      //console.log("data",data.toString("utf8").slice(6,))
       tt.write(savjeeCoin.checkIfExist(data.toString("utf8").slice(6,)).toString())
+      //tt.write(savjeeCoin.checkIfExist(tx2.calculateHash()));
     }
     else{
         const tran=JSON.parse(data);
     //console.log("we recive",tran);
     for(let i=0;i<tran.length;i++){
-        const transaticon=new Transaction(tran[i].fromAddress,tran[i].toAddress,tran[i].amount,tran[i].timestamp,tran[i].signature)
+        const transaticon=new Transaction(tran[i].fromAddress,tran[i].toAddress,tran[i].amount,tran[i].priority,tran[i].timestamp,tran[i].signature)
         if(i==0)
         console.log(transaticon.calculateHash());
         //console.log("my amout is ",tran[i].amount,"and add is",transaticon.fromAddress);
@@ -137,7 +155,7 @@ const bloom=new BloomFilter(10,4);
     const tx2 = new Transaction(fullNodeWallet.getPublicKey(), 'address1', 10);
     savjeeCoin.minePendingTransactions(fullNodeWallet.getPublicKey());
     bloom.add(tx1.calculateHash());
-    //console.log("its bloom",bloom.has(tx2.calculateHash()));
+    console.log("its bloom",bloom.has(tx2.calculateHash()));
     // Create second transaction
 // const tx2 = new Transaction(fullNodeWallet.getPublicKey(), 'address1', 10);
 // fullNodeWallet.signMyTransaction(tx2);
