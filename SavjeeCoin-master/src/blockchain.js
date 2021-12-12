@@ -178,13 +178,9 @@ class Blockchain {
     //console.log("pending  len is",this.pendingTransactions.length);
     if(this.pendingTransactions.length>0){
       const size= this.pendingTransactions.length;
-      // console.log(size)
-      // if(size==3){
-        for(let i=0;i<3&&i<size;i++){
-          tempPendingTransactions.push(this.pendingTransactions.shift());
-        }
-      // }
-      
+      for(let i=0;i<3&&i<size;i++){
+        tempPendingTransactions.push(this.pendingTransactions.shift());
+      }
     }
 
     tempPendingTransactions.push(rewardTx);
@@ -241,7 +237,7 @@ class Blockchain {
    * @returns {number} The balance of the wallet
    */
   getBalanceOfAddress(address) {
-    let balance = 1000;
+    let balance = 100;
 
     for (const block of this.chain) {
       for (const trans of block.transactions) {

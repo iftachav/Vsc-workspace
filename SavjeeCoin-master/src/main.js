@@ -21,7 +21,6 @@ const {log} = console
 const {me, peers} = extractPeersAndMyPort()
 const sockets = {}
 const fullNodesPeer=4001
-let flag = false;
 
 log('---------------------')
 log('Welcome to p2p chat!')
@@ -77,32 +76,30 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
     //console.log("we recive",tran);
     for(let i=0;i<tran.length;i++){
         const transaticon=new Transaction(tran[i].fromAddress,tran[i].toAddress,tran[i].amount,tran[i].timestamp,tran[i].signature)
-        console.log("my amout is ",tran[i].amount,"and balance is",savjeeCoin.getBalanceOfAddress(transaticon.fromAddress), "im peer ", peerPort, "to adderss ", transaticon.toAddress);
+        //console.log("my amout is ",tran[i].amount,"and add is",transaticon.fromAddress);
+        //console.log("my amout is ",tran[i].amount,"and balance is",savjeeCoin.getBalanceOfAddress(transaticon.fromAddress));
         log("check if valid",transaticon.isValid());
         savjeeCoin.addTransaction(transaticon);
-        savjeeCoin.minePendingTransactions(fullNodeWallet.getPublicKey());
-        // if(i=tran.length-1)
-        //   flag=true;
     }
-    // if(flag){
-    //   console.log("Activating mine")
-    //   savjeeCoin.minePendingTransactions(fullNodeWallet.getPublicKey());
-    //   console.log("this is 4002 balance")
-    //   console.log(savjeeCoin.getBalanceOfAddress("0405bee6bbdc415fcd1aaeea34ec06030368fca12f164361ba1cd9a611630b24c7c4deb1897f0ed8d9da752496b4a624d65b014f1f5b0ea8973ee9e377dce63ee5"))
-    //   console.log("this is 4003 balance")
-    //   console.log(savjeeCoin.getBalanceOfAddress("04bd826ed81e95c1fdf631b344d706d41e87072b66a57f1653fbe3ef1b120957993fc57acb078219198ac15c415990400631b3870eadf427572d7c0e3b4f0e0553"))
-    //   // flag=false;
-    // }
-    //var c=setInterval(savjeeCoin.minePendingTransactions,5000,fullNodeWallet.publicKey);
-    // savjeeCoin.minePendingTransactions(fullNodeWallet.getPublicKey());
+    var c=setInterval(savjeeCoin.minePendingTransactions,5000,fullNodeWallet.publicKey);
     //savjeeCoin.minePendingTransactions(fullNodeWallet.getPublicKey());
+    //savjeeCoin.minePendingTransactions(fullNodeWallet.getPublicKey());
+    //console.log("this is 4001 balance")
+    //console.log(savjeeCoin.getBalanceOfAddress(fullNodeWallet.publicKey))
+    //console.log("this is 4002 balance")
+    //console.log(savjeeCoin.getBalanceOfAddress("0405bee6bbdc415fcd1aaeea34ec06030368fca12f164361ba1cd9a611630b24c7c4deb1897f0ed8d9da752496b4a624d65b014f1f5b0ea8973ee9e377dce63ee5"))
+    //console.log("this is 4003 balance")
+    //console.log(savjeeCoin.getBalanceOfAddress("04bd826ed81e95c1fdf631b344d706d41e87072b66a57f1653fbe3ef1b120957993fc57acb078219198ac15c415990400631b3870eadf427572d7c0e3b4f0e0553"))
+
+    // console.log("my amout is ",tran[i].amount,"and balance is",savjeeCoin.getBalanceOfAddress(transaticon.fromAddress));
    // savjeeCoin.minePendingTransactions(fullNodeWallet.getPublicKey());
   })
 })
     // Create a transaction & sign it with your key
-
+var c=setInterval(savjeeCoin.minePendingTransactions,5000,fullNodeWallet.publicKey);
 // const tx1 = new Transaction(fullNodeWallet.getPublicKey(), secondKey.getPublic('hex'), 20);
 //     //tx1.signTransaction(myKey);
+
 // fullNodeWallet.signMyTransaction(tx1);
 // savjeeCoin.addTransaction(tx1);
     
@@ -172,8 +169,7 @@ console.log(`Balance of xavier is ${savjeeCoin.getBalanceOfAddress(fullNodeWalle
 // // Mine block
 // savjeeCoin.minePendingTransactions(myWalletAddress);
 // for (const block of savjeeCoin.chain) {
-//         const tree=block.tree
-//         const root = tree.getRoot().toString('hex')
+//         const tree=block.tree//         const root = tree.getRoot().toString('hex')
 //         const leaf = tx2.calculateHash()
 //         const proof = tree.getProof(leaf)
 //         console.log("is tran in block",tree.verify(proof, leaf, root))
@@ -196,10 +192,9 @@ function printBalance(savjeeCoin){
     console.log(`Balance of xavier is ${savjeeCoin.getBalanceOfAddress(myWalletAddress)}`);
 }
 
-// function mineEvery5Sex(coin,walletAddress){
-//     return setInterval(coin.,5000,myWalletAddress);
-    
-// }
+ function mineEvery5Sex(coin,walletAddress){
+     return coin.minePendingTransactions(walletAddress);
+ }
 //extract ports from process arguments, {me: first_port, peers: rest... }
 function extractPeersAndMyPort() {
   return {me: argv[2], peers: argv.slice(3, argv.length)}

@@ -64,7 +64,7 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
     //   }
     // }
         var tranArray=[];
-    for(let i=0;i<30;i++){
+    for(let i=0;i<json.transaction.length;i++){
       tranJson=json.transaction[i];
       //console.log("tran json is ",json.transaction[i]);
       //console.log("my wallet address",myWallet.publicKey);
@@ -84,6 +84,7 @@ topology(myIp, peerIps).on('connection', (socket, peerIp) => {
       socket.write(verfiytransactionJson);
 
     }
+    tranArray=[];
 
    stdin.on('data', data => { //on user input
     const message = data.toString().trim()
