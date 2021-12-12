@@ -141,7 +141,7 @@ class Block {
 class Blockchain {
   constructor() {
     this.chain = [this.createGenesisBlock()];
-    this.difficulty = 5;
+    this.difficulty = 2;
     this.pendingTransactions = [];
     this.miningReward = 10;
   }
@@ -332,6 +332,19 @@ class Blockchain {
 
     debug('get transactions for wallet count: %s', txs.length);
     return txs;
+  }
+
+  getAllCoinsAmount(){
+        let balance = 0;
+
+    for (const block of this.chain) {
+      for (const trans of block.transactions) {
+          balance += parseInt(trans.amount);
+        
+      }
+    }
+    return balance;
+
   }
 
   /**

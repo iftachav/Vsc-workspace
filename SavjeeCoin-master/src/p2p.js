@@ -93,14 +93,17 @@ var t=topology(myIp, peerIps).on('connection', (socket, peerIp) => {
 
     }
     tranArray=[];
-    var tt=t.peer("127.0.0.1:"+fullNodesPeer)
-    tt.on('data', data => {
+    if(fullNodesPeer==peerPort){
+      var tt=t.peer("127.0.0.1:"+fullNodesPeer)
+      tt.on('data', data => {
       if(flag!=data){
-
         log(data.toString("utf8"))
         flag=data;
       }
     })
+
+    }
+
    stdin.on('data', data => { //on user input
     const message = data.toString().trim()
     if (message === 'exit') { //on exit
@@ -108,9 +111,10 @@ var t=topology(myIp, peerIps).on('connection', (socket, peerIp) => {
       exit(0)
     }
 
-    if(message.includes("verify")||message.includes("exist"))
+    if(message.includes("verify")||message.includes("exist")||message.includes("allCoins"))
         socket.write(message);
-    
+    if(message.includes("balance"))
+      socket.write(message+myWallet.publicKey);
     
 
 

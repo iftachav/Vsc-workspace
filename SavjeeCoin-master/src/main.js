@@ -61,6 +61,7 @@ const savjeeCoin = new Blockchain();
     //savjeeCoin.addTransaction(new Transaction('address1', myWalletAddress, 150));
     // Mine first block
 savjeeCoin.minePendingTransactions(fullNodeWallet.getPublicKey());
+console.log("finish building first block!")
     for(let i=0;i<json.transaction.length;i++){
       tranJson=json.transaction[i];
       //console.log("tran json is ",json.transaction[i]);
@@ -80,14 +81,49 @@ savjeeCoin.minePendingTransactions(fullNodeWallet.getPublicKey());
     //console.log(savjeeCoin.chain[0].tree.toString()) ;
 
 var t=topology(myIp, peerIps).on('connection', (socket, peerIp) => {
+
     const peerPort = extractPortFromIp(peerIp)
     log('connected to peer - ', peerPort)
-
     sockets[peerPort] = socket
     var tt=t.peer("127.0.0.1:"+peerPort)
     //var t2=t.peer("127.0.0.1:"+4003)
     //tt.write("verify")
       //print data when received
+
+       stdin.on('data', data => { //on user input
+    const message = data.toString().trim()
+
+    if (message === 'exit') { //on exit
+      log('Bye bye')
+      exit(0)
+    }
+    if(message.includes("balance"))
+      console.log(savjeeCoin.getBalanceOfAddress(fullNodeWallet.publicKey).toString());
+    else if(message.includes("verify"))
+      console.log(savjeeCoin.checkIfVerfiy(data.toString("utf8").slice(7,)).toString());
+    else if(message.includes("exist"))
+      console.log(savjeeCoin.checkIfExist(data.toString("utf8").slice(6,)).toString());
+    else if(message.includes("allCoins"))
+      console.log(savjeeCoin.getAllCoinsAmount().toString());
+
+    // switch(message){
+      
+    //   case message.includes("verify"): 
+    //     console.log(savjeeCoin.checkIfVerfiy(data.toString("utf8").slice(7,)).toString());
+    //     break;
+    //   case message.includes("exist"):
+    //     console.log(savjeeCoin.checkIfExist(data.toString("utf8").slice(6,)).toString());
+    //     break;
+    //   case message.includes("allCoins"):
+    //     console.log(savjeeCoin.getAllCoinsAmount().toString());
+    //     break;
+    //   case message.includes("balance"):
+    //     console.log("inside balance")
+    //     console.log(savjeeCoin.getBalanceOfAddress(fullNodeWallet.publicKey).toString());
+    //     break;
+
+    // }
+  });
     
     socket.on('data', data => {
     //const tran=new Transaction
@@ -109,22 +145,39 @@ var t=topology(myIp, peerIps).on('connection', (socket, peerIp) => {
       tt.write(savjeeCoin.checkIfExist(data.toString("utf8").slice(6,)).toString())
       //tt.write(savjeeCoin.checkIfExist(tx2.calculateHash()));
     }
+    else if(data.includes("balance")){
+      //console.log("data",data.toString("utf8").slice(8,))
+      tt.write(savjeeCoin.getBalanceOfAddress(data.toString("utf8").slice(7,)).toString())
+    }
+    else if(data.includes("allCoins")){
+      tt.write(savjeeCoin.getAllCoinsAmount().toString())
+
+    }
     else{
-        const tran=JSON.parse(data);
+      const tran=JSON.parse(data);
     //console.log("we recive",tran);
-    for(let i=0;i<tran.length;i++){
-        const transaticon=new Transaction(tran[i].fromAddress,tran[i].toAddress,tran[i].amount,tran[i].priority,tran[i].timestamp,tran[i].signature)
-        if(i==0)
-        console.log(transaticon.calculateHash());
+      for(let i=0;i<tran.length;i++){
+          const transaticon=new Transaction(tran[i].fromAddress,tran[i].toAddress,tran[i].amount,tran[i].priority,tran[i].timestamp,tran[i].signature)
+          if(i==0)
+          console.log(transaticon.calculateHash());
         //console.log("my amout is ",tran[i].amount,"and add is",transaticon.fromAddress);
         //console.log("my amout is ",tran[i].amount,"and balance is",savjeeCoin.getBalanceOfAddress(transaticon.fromAddress));
-        log("check if valid",transaticon.isValid());
-        savjeeCoin.addTransaction(transaticon);
-    }
+          log("check if valid",transaticon.isValid());
+          savjeeCoin.addTransaction(transaticon);
+      } 
+      for(let i=0;i<savjeeCoin.pendingTransactions.length/3;i++){
+        savjeeCoin.minePendingTransactions(fullNodeWallet.getPublicKey());
+        console.log("i mined!")
+        if(i==savjeeCoin.pendingTransactions.length/3-1){
+         console.log("final");
+        }
+      }
     }
 
+    //console.log("pending tran len",savjeeCoin.pendingTransactions.lenth)
+
     //var c=setInterval(savjeeCoin.minePendingTransactions,5000,fullNodeWallet.publicKey);
-    savjeeCoin.minePendingTransactions(fullNodeWallet.getPublicKey());
+    //savjeeCoin.minePendingTransactions(fullNodeWallet.getPublicKey());
     //savjeeCoin.minePendingTransactions(fullNodeWallet.getPublicKey());
     //console.log("this is 4001 balance")
     //console.log(savjeeCoin.getBalanceOfAddress(fullNodeWallet.publicKey))
@@ -137,6 +190,7 @@ var t=topology(myIp, peerIps).on('connection', (socket, peerIp) => {
    // savjeeCoin.minePendingTransactions(fullNodeWallet.getPublicKey());
   })
 })
+
 
 
 //const bloom=new BloomFilter(10,4);
