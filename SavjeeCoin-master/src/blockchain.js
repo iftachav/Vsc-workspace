@@ -141,7 +141,7 @@ class Block {
 class Blockchain {
   constructor() {
     this.chain = [this.createGenesisBlock()];
-    this.difficulty = 2;
+    this.difficulty = 5;
     this.pendingTransactions = [];
     this.miningReward = 10;
   }
@@ -239,8 +239,8 @@ class Blockchain {
    for(let i=0;i<tempPendingTransactions.length;i++){
       TempBlockFilter.add(tempPendingTransactions[i].calculateHash());
       if(tempPendingTransactions[i].fromAddress!=null && tempPendingTransactions[i].toAddress!= null){
-        this.coinsBurn(tempPendingTransactions[i].fromAddress,this.chain.length-1)
-        console.log("ADDED BURN ",this.chain.length-1)
+        this.coinsBurn(tempPendingTransactions[i].fromAddress,this.chain.length)
+        console.log("ADDED BURN ",this.chain.length)
       }
    }
    block.blockFilter=TempBlockFilter;

@@ -139,23 +139,23 @@ var t=topology(myIp, peerIps).on('connection', (socket, peerIp) => {
 })
 
 
-const bloom=new BloomFilter(10,4);
+//const bloom=new BloomFilter(10,4);
 
     // Create a transaction & sign it with your key
 //var c=setInterval(savjeeCoin.minePendingTransactions,5000,fullNodeWallet.publicKey);
- const tx1 = new Transaction(fullNodeWallet.getPublicKey(), secondKey.getPublic('hex'), 20);
-     tx1.signTransaction(fullNodeWallet.privateKey);
+// const tx1 = new Transaction(fullNodeWallet.getPublicKey(), secondKey.getPublic('hex'), 20);
+     //tx1.signTransaction(fullNodeWallet.privateKey);
 
 // fullNodeWallet.signMyTransaction(tx1);
- savjeeCoin.addTransaction(tx1);
+ //savjeeCoin.addTransaction(tx1);
     
     //console.log("sockets is",b.getSockets());
     //b.getSockets().write("write to sokcet ",tx1.toString())
     // Mine block
-    const tx2 = new Transaction(fullNodeWallet.getPublicKey(), 'address1', 10);
-    savjeeCoin.minePendingTransactions(fullNodeWallet.getPublicKey());
-    bloom.add(tx1.calculateHash());
-    console.log("its bloom",bloom.has(tx2.calculateHash()));
+   // const tx2 = new Transaction(fullNodeWallet.getPublicKey(), 'address1', 10);
+    //savjeeCoin.minePendingTransactions(fullNodeWallet.getPublicKey());
+    //bloom.add(tx1.calculateHash());
+    //console.log("its bloom",bloom.has(tx2.calculateHash()));
     // Create second transaction
 // const tx2 = new Transaction(fullNodeWallet.getPublicKey(), 'address1', 10);
 // fullNodeWallet.signMyTransaction(tx2);
