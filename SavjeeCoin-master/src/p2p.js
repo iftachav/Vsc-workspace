@@ -1,24 +1,19 @@
 
 const topology = require('fully-connected-topology')
-const {Transaction } = require('./blockchain');
+const { Transaction } = require('./blockchain');
 const EC = require('elliptic').ec;
 const ec = new EC('secp256k1');
-const {Wallet}= require('./wallet');
-const json=require('./inputJson.json');
-// class p2p{
-
-// constructor(){
-//   this.{me,peers}=extractPeersAndMyPort()
-// }
-const {stdin, exit, argv} = process
-const {log} = console
-const {me, peers} = extractPeersAndMyPort()
+const { Wallet } = require('./wallet');
+const json = require('./inputJson.json');
+const { stdin, exit, argv } = process
+const { log } = console
+const { me, peers } = extractPeersAndMyPort()
 const sockets = {}
-const fullNodesPeer=4001
-const fullNodesAddress="04729aaee497f99ff7ed4da9b7a5c23912da6533783b5cee16839b1e2628bc3413672b407a68c7a15a6fe3ea238b16f26e7a35755e258a0b9fb3d007da7a2e9c94";
-var myWallet={};
-var tranJson={};
-var tran={};
+const fullNodesPeer = 4001
+const fullNodesAddress = "04729aaee497f99ff7ed4da9b7a5c23912da6533783b5cee16839b1e2628bc3413672b407a68c7a15a6fe3ea238b16f26e7a35755e258a0b9fb3d007da7a2e9c94";
+var myWallet = {};
+var tranJson = {};
+var tran = {};
 var verfiytransactionJson
 var flag;
 
@@ -30,131 +25,68 @@ log('connecting to peers...')
 
 const myIp = toLocalIp(me)
 const peerIps = getPeerIps(peers)
-if(me==4002)
-    myWallet=new Wallet('abac45105bbc70c91bab3480c12342e90049f1a44f3e18c3e07c55e3273995ab');
-else 
-    myWallet=new Wallet('b33c4590551140c91bab3480c39032e11119fffb4f3e4457e07c23e327bb95cc');
-//log('peer ip is ',peerIps)
-/// if(me==fullNodesPeer){
-//         log('first peer is-',me)
-//}
+if (me == 4002)
+  myWallet = new Wallet('abac45105bbc70c91bab3480c12342e90049f1a44f3e18c3e07c55e3273995ab');
+else
+  myWallet = new Wallet('b33c4590551140c91bab3480c39032e11119fffb4f3e4457e07c23e327bb95cc');
 
 //connect to peers
-var t=topology(myIp, peerIps).on('connection', (socket, peerIp) => {
-    // if(me==fullNodesPeer){
-    //     log('first peer is-',me)
-    // }
-    
+var t = topology(myIp, peerIps).on('connection', (socket, peerIp) => {
   const peerPort = extractPortFromIp(peerIp)
   log('connected to peer - ', peerPort)
-
   sockets[peerPort] = socket
-  //sockets[4002].write(formatMessage("hii iftach111"))
- // console.log("peer inside ",peerPort);
-  //if(me==4001)
-    //sockets[4002].write(formatMessage("hii dolevvv"))
-    // for(let i=0;i<json.transaction.length;i++){
-    //   const tranJson=json.transaction[i];
-    //   //console.log("tran json is ",json.transaction[i]);
-    //   //console.log("my wallet address",myWallet.publicKey);
-    //   const tran= new Transaction(tranJson.from,tranJson.to,tranJson.amount);
-    //   if(tran.fromAddress==myWallet.publicKey){
-    //     tran.signTransaction(myWallet.privateKey);
-    //     const verfiytransactionJson=JSON.stringify(tran);
-    //     socket.write(verfiytransactionJson)
-    //     //setTimeout(function(){ socket.write(tranJson) }, 100);
-    //   }
-    // }
-        var tranArray=[];
-    for(let i=0;i<json.transaction.length;i++){
-      tranJson=json.transaction[i];
-      //console.log("tran json is ",json.transaction[i]);
-      //console.log("my wallet address",myWallet.publicKey);
-      tran= new Transaction(tranJson.from,tranJson.to,tranJson.amount,tranJson.priority);
-      if(tran.fromAddress==myWallet.publicKey){
-        tran.signTransaction(myWallet.privateKey);
-        if(tran.priority==true){
-          const commission=new Transaction(tran.fromAddress,fullNodesAddress,1);
-          commission.signTransaction(myWallet.privateKey);
-          tranArray.push(commission);
-        }
-        //verfiytransactionJson=JSON.stringify(tran);
-        //console.log("verfiy is ",verfiytransactionJson);
-        tranArray.push(tran);
-        //socket.write(verfiytransactionJson);
-        //setTimeout(function() {}, 1000);
+  var tranArray = [];
+  for (let i = 0; i < json.transaction.length; i++) {
+    tranJson = json.transaction[i];
+    tran = new Transaction(tranJson.from, tranJson.to, tranJson.amount, tranJson.priority);
+    if (tran.fromAddress == myWallet.publicKey) {
+
+      myWallet.signMyTransaction(tran)
+      if (tran.priority == true) {
+        const commission = new Transaction(tran.fromAddress, fullNodesAddress, 1);
+        myWallet.signMyTransaction(commission)
+        tranArray.push(commission);
       }
-
+      tranArray.push(tran);
     }
-    if(tranArray.length>0){
-      verfiytransactionJson=JSON.stringify(tranArray);
-      //sockets[fullNodesPeer].write("hiiii");
-      socket.write(verfiytransactionJson);
 
-    }
-    tranArray=[];
-    if(fullNodesPeer==peerPort){
-      var tt=t.peer("127.0.0.1:"+fullNodesPeer)
-      tt.on('data', data => {
-      if(flag!=data){
+  }
+  if (tranArray.length > 0) {
+    verfiytransactionJson = JSON.stringify(tranArray);
+    socket.write(verfiytransactionJson);
+
+  }
+  tranArray = [];
+  if (fullNodesPeer == peerPort) {
+    var tt = t.peer("127.0.0.1:" + fullNodesPeer)
+    tt.on('data', data => {
+      if (flag != data) {
         log(data.toString("utf8"))
-        flag=data;
+        flag = data;
       }
     })
 
-    }
+  }
 
-   stdin.on('data', data => { //on user input
+  stdin.on('data', data => { //on user input
     const message = data.toString().trim()
     if (message === 'exit') { //on exit
       log('Bye bye')
       exit(0)
     }
 
-    if(message.includes("verify")||message.includes("exist")||message.includes("allCoins"))
-        socket.write(message);
-    if(message.includes("balance"))
-      socket.write(message+myWallet.publicKey);
-    
+    if (message.includes("verify") || message.includes("exist") || message.includes("allCoins") || message.includes("burn"))
+      socket.write(message);
+    if (message.includes("balance"))
+      socket.write(message + myWallet.publicKey);
 
-
-   //console.log("num of tran in mempol",json.transaction.length);
-
-
-      
-    //log("check if valid",tran.isValid());
-    //const receiverPeer = extractReceiverPeer(message)
-    // console.log("peer inside ",receiverPeer);
-    // if (sockets[receiverPeer]) { //message to specific peer
-    //   if (peerPort === receiverPeer) { //write only once
-    //     sockets[receiverPeer].write(formatMessage(extractMessageToSpecificPeer(message)))
-    //   }
-    // } else { //broadcast message to everyone
-    //   //socket.write(tranJson)
-    // }
-    
-  }) 
-//   socket.on('data', data =>{
-//       //if(me==4003)
-//       log(data.toString("utf8"))
-// }) 
-
-  
-  //print data when received
-  // socket.on('data', data => {
-    //const tran=new Transaction
-    //const tran=JSON.parse(data);
-   // const transaticon=new Transaction(tran.fromAddress,tran.toAddress,tran.amount,tran.timestamp,tran.signature)
-   // log("tran is ",tran);
-   // log("check if valid",transaticon.isValid());
-    
- // })
+  })
 })
 
 
 //extract ports from process arguments, {me: first_port, peers: rest... }
 function extractPeersAndMyPort() {
-  return {me: argv[2], peers: argv.slice(3, argv.length)}
+  return { me: argv[2], peers: argv.slice(3, argv.length) }
 }
 
 //'4000' -> '127.0.0.1:4000'
@@ -163,11 +95,11 @@ function toLocalIp(port) {
 }
 
 
-exports.getMe=()=>{
+exports.getMe = () => {
   return me;
 }
 
-exports.getSockets=()=>{
+exports.getSockets = () => {
   return sockets;
 }
 
@@ -195,6 +127,5 @@ function extractReceiverPeer(message) {
 function extractMessageToSpecificPeer(message) {
   return message.slice(5, message.length);
 }
-//}
-//exports.extractMessageToSpecificPeer=extractMessageToSpecificPeer
-   
+
+

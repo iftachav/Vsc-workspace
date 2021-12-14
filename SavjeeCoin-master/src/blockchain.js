@@ -12,17 +12,17 @@ class Transaction {
    * @param {string} toAddress
    * @param {number} amount
    */
-  constructor(fromAddress, toAddress, amount,priority=false, timestamp=Date.now(),signature='') {
+  constructor(fromAddress, toAddress, amount, priority = false, timestamp = Date.now(), signature = '') {
     this.fromAddress = fromAddress;
     this.toAddress = toAddress;
     this.amount = amount;
     this.timestamp = timestamp;
-    this.signature=signature;
-    this.priority=priority;
+    this.signature = signature;
+    this.priority = priority;
   }
 
 
-  
+
 
   /**
    * Creates a SHA256 hash of the transaction
@@ -46,7 +46,7 @@ class Transaction {
     if (signingKey.getPublic('hex') !== this.fromAddress) {
       throw new Error('You cannot sign transactions for other wallets!');
     }
-    
+
 
     // Calculate the hash of this transaction, sign it with the key
     // and store it inside the transaction obect
@@ -89,8 +89,8 @@ class Block {
     this.previousHash = previousHash;
     this.timestamp = timestamp;
     this.transactions = transactions;
-    this.tree=new MerkleTree(this.transactions.map(x=>x.calculateHash()), SHA256);
-    this.blockFilter=new BloomFilter(10,4);
+    this.tree = new MerkleTree(this.transactions.map(x => x.calculateHash()), SHA256);
+    this.blockFilter = new BloomFilter(10, 4);
     this.nonce = 0;
     this.hash = this.calculateHash();
   }
@@ -163,34 +163,39 @@ class Blockchain {
     return this.chain[this.chain.length - 1];
   }
 
-    /**
-  given address.
-   *
-   * @param {string} transactionHash
-   * 
-   * @returns {true/false}
-   */
+  /**
+check if transaction is verify (using merkle tree).
+ *
+ * @param {string} transactionHash
+ * 
+ * @returns {true/false}
+ */
 
-  checkIfVerfiy(transactionHash){
+  checkIfVerfiy(transactionHash) {
 
     for (const block of this.chain) {
-        const tree=block.tree
-        const root = tree.getRoot().toString('hex')
-        const proof = tree.getProof(transactionHash)
-        //console.log("is tran in block",tree.verify(proof, leaf, root))
-        if(tree.verify(proof,transactionHash, root))
-          return true
-    
-    } 
+      const tree = block.tree
+      const root = tree.getRoot().toString('hex')
+      const proof = tree.getProof(transactionHash)
+
+      if (tree.verify(proof, transactionHash, root))
+        return true
+
+    }
     return false
   }
 
-  
-  checkIfExist(transaction){
-    console.log("tran inside",transaction.toString());
+  /**
+  check if transaction exist (using bloomFilter).
+  *
+  * @param {string} transactionHash
+    * 
+* @returns {true/false}
+  */
+  checkIfExist(transactionHash) {
     for (const block of this.chain) {
-      const blockFilter=block.blockFilter
-      if(blockFilter.has(transaction))
+      const blockFilter = block.blockFilter
+      if (blockFilter.has(transactionHash))
         return true;
 
     }
@@ -199,11 +204,19 @@ class Blockchain {
 
   }
 
-    coinsBurn(fromAddress,amount){
-      const burnTx = new Transaction(fromAddress, null, amount);
-      if(this.getBalanceOfAddress(fromAddress)>=amount)
-        this.pendingTransactions.push(burnTx);
-    }
+  /**
+   * burn a specific amout of coins from the address that given
+  
+    *
+    * @param {string} fromAddress
+    * @param {int} amount
+    */
+  coinsBurn(fromAddress, amount) {
+    const burnTx = new Transaction(fromAddress, null, amount);
+    if (this.getBalanceOfAddress(fromAddress) >= amount)
+      this.pendingTransactions.push(burnTx);
+  }
+
   /**
    * Takes all the pending transactions, puts them in a Block and starts the
    * mining process. It also adds a transaction to send the mining reward to
@@ -212,46 +225,30 @@ class Blockchain {
    * @param {string} miningRewardAddress
    */
 
-  //TODO: set func to activate every 5-10 sec
   minePendingTransactions(miningRewardAddress) {
-   // const miningRewardAddress='04729aaee497f99ff7ed4da9b7a5c23912da6533783b5cee16839b1e2628bc3413672b407a68c7a15a6fe3ea238b16f26e7a35755e258a0b9fb3d007da7a2e9c94';
     const rewardTx = new Transaction(null, miningRewardAddress, this.miningReward);
-    //this.pendingTransactions.push(rewardTx);
-    
-    let tempPendingTransactions= [];
-    const TempBlockFilter=new BloomFilter(10,4);
-    //console.log("pending  len is",this.pendingTransactions.length);
-    if(this.pendingTransactions.length>0){
-      const size= this.pendingTransactions.length;
-      for(let i=0;i<3&&i<size;i++){
+    let tempPendingTransactions = [];
+    const TempBlockFilter = new BloomFilter(10, 4);
+    if (this.pendingTransactions.length > 0) {
+      const size = this.pendingTransactions.length;
+      for (let i = 0; i < 3 && i < size; i++) {
         tempPendingTransactions.push(this.pendingTransactions.shift());
       }
     }
 
     tempPendingTransactions.push(rewardTx);
-    //console.log("this temp",tempPendingTransactions)
-    //arr.splice(0,2)
-    //console.log("num is",arr.s.slice(3,));
-    //console.log("num is",arrplice(0,3));
-    //const leaves = this.pendingTransactions.map(x=>x.calculateHash())
     const block = new Block(Date.now(), tempPendingTransactions, this.getLatestBlock().hash);
-   // block.tree=new MerkleTree(leaves, SHA256);
-   for(let i=0;i<tempPendingTransactions.length;i++){
+    for (let i = 0; i < tempPendingTransactions.length; i++) {
       TempBlockFilter.add(tempPendingTransactions[i].calculateHash());
-      if(tempPendingTransactions[i].fromAddress!=null && tempPendingTransactions[i].toAddress!= null){
-        this.coinsBurn(tempPendingTransactions[i].fromAddress,this.chain.length)
-        console.log("ADDED BURN ",this.chain.length)
+      if (tempPendingTransactions[i].fromAddress != null && tempPendingTransactions[i].toAddress != null) {
+        this.coinsBurn(tempPendingTransactions[i].fromAddress, this.chain.length)
       }
-   }
-   block.blockFilter=TempBlockFilter;
-    
+    }
+    block.blockFilter = TempBlockFilter;
     block.mineBlock(this.difficulty);
-
     debug('Block successfully mined!');
     this.chain.push(block);
   }
-
-
 
   /**
    * Add a new transaction to the list of pending transactions (to be added
@@ -269,17 +266,17 @@ class Blockchain {
     if (!transaction.isValid()) {
       throw new Error('Cannot add invalid transaction to chain');
     }
-    
+
     if (transaction.amount <= 0) {
       throw new Error('Transaction amount should be higher than 0');
     }
-    
+
     // Making sure that the amount sent is not greater than existing balance
     if (this.getBalanceOfAddress(transaction.fromAddress) < transaction.amount) {
-      console.log("balance",this.getBalanceOfAddress(transaction.fromAddress),"and amout ",transaction.amount)
+      console.log("balance", this.getBalanceOfAddress(transaction.fromAddress), "and amout ", transaction.amount)
       throw new Error("Not enough balance");
     }
-    if(transaction.priority=="true"){
+    if (transaction.priority == "true") {
 
       this.pendingTransactions.unshift(transaction);
     }
@@ -334,13 +331,35 @@ class Blockchain {
     return txs;
   }
 
-  getAllCoinsAmount(){
-        let balance = 0;
+  /**
+ * Returns how many coins mined in the blockchain.
+ *
+ */
+  getAllCoinsAmount() {
+    let balance = 0;
 
     for (const block of this.chain) {
       for (const trans of block.transactions) {
+        balance += parseInt(trans.amount);
+
+      }
+    }
+    return balance;
+
+  }
+
+  /**
+* Returns how many coins burned in the blockchain.
+*
+*/
+  getHowManyBurned() {
+
+    let balance = 0;
+
+    for (const block of this.chain) {
+      for (const trans of block.transactions) {
+        if (trans.fromAddress != null && trans.toAddress == null)
           balance += parseInt(trans.amount);
-        
       }
     }
     return balance;

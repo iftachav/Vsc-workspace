@@ -4,8 +4,6 @@ let filter = new BloomFilter(10, 2)
 // insert data
 filter.add('iftach')
 filter.add('roi')
-//const arr=['iftach','roi']
-//filter.add(arr)
 
 // lookup for some data
 console.log(filter.has('roi')) // output: true
