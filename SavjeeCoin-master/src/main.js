@@ -61,6 +61,8 @@ var t = topology(myIp, peerIps).on('connection', (socket, peerIp) => {
         console.log(rexi.getAllCoinsAmount().toString());
       else if (message.includes("burn"))
         console.log(rexi.getHowManyBurned().toString());
+      else if (message.includes("coinsInNet"))
+        console.log(rexi.getAllCoinsAmount() - rexi.getHowManyBurned())
       flag = message
 
     }
@@ -82,6 +84,9 @@ var t = topology(myIp, peerIps).on('connection', (socket, peerIp) => {
     }
     else if (data.includes("burn")) {
       tt.write(rexi.getHowManyBurned().toString())
+    }
+    else if (data.includes("coinsInNet")) {
+      tt.write((rexi.getAllCoinsAmount() - rexi.getHowManyBurned()).toString());
     }
     else {
       const tran = JSON.parse(data);

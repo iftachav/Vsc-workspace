@@ -141,7 +141,7 @@ class Block {
 class Blockchain {
   constructor() {
     this.chain = [this.createGenesisBlock()];
-    this.difficulty = 2;
+    this.difficulty = 5;
     this.pendingTransactions = [];
     this.miningReward = 10;
   }
@@ -337,7 +337,6 @@ check if transaction is verify (using merkle tree).
  */
   getAllCoinsAmount() {
     let balance = 0;
-
     for (const block of this.chain) {
       for (const trans of block.transactions) {
         balance += parseInt(trans.amount);
@@ -345,7 +344,6 @@ check if transaction is verify (using merkle tree).
       }
     }
     return balance;
-
   }
 
   /**
@@ -353,9 +351,7 @@ check if transaction is verify (using merkle tree).
 *
 */
   getHowManyBurned() {
-
     let balance = 0;
-
     for (const block of this.chain) {
       for (const trans of block.transactions) {
         if (trans.fromAddress != null && trans.toAddress == null)

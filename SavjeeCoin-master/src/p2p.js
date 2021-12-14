@@ -75,7 +75,7 @@ var t = topology(myIp, peerIps).on('connection', (socket, peerIp) => {
       exit(0)
     }
 
-    if (message.includes("verify") || message.includes("exist") || message.includes("allCoins") || message.includes("burn"))
+    if (message.includes("verify") || message.includes("exist") || message.includes("allCoins") || message.includes("burn") || message.includes("coinsInNet"))
       socket.write(message);
     if (message.includes("balance"))
       socket.write(message + myWallet.publicKey);
